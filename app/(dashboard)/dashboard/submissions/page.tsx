@@ -221,12 +221,16 @@ export default function SubmissionsPage() {
       ? `${bankInfo.bankName} / ${bankInfo.accountNumber} / ${bankInfo.accountHolder}`
       : "";
 
+    // profilePhoto는 formData 또는 uploadedFiles에서 가져옴
+    const profilePhoto = formData.profilePhoto || uploadedFiles.profilePhoto?.url || "";
+
     try {
       const res = await fetch("/api/submissions", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          profilePhoto,
           bankAccount,
           sensitiveFilesUploaded,
         }),
