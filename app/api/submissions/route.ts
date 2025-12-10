@@ -95,14 +95,13 @@ export async function PUT(request: NextRequest) {
     } = body;
 
     // 필수 필드 모두 채워졌는지 확인
-    // 민감정보(사업자등록증, 신분증, 통장)는 별도 업로드 완료 여부 확인
+    // 민감정보(사업자등록증, 신분증, 통장)는 슬랙 채널 생성 후 업로드 가능하므로 필수 아님
     const isComplete = !!(
       profilePhoto &&
       brandName &&
       contactEmail &&
       contactPhone &&
-      bankAccount &&
-      sensitiveFilesUploaded // 민감정보 파일들이 슬랙으로 전송 완료됨
+      bankAccount
     );
 
     // 기존 submission 조회 (제출 여부 확인)
