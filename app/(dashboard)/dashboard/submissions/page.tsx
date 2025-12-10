@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Upload,
   FileText,
@@ -17,7 +17,19 @@ import {
   Shield,
   X,
   Image,
+  ExternalLink,
+  Globe,
 } from "lucide-react";
+
+// 웹사이트 스타일 옵션 (startpackage에서 가져옴)
+const WEBSITE_STYLES = [
+  { url: "https://financialhealing.imweb.me/", name: "스타일 1" },
+  { url: "https://mjgood.imweb.me/", name: "스타일 2" },
+  { url: "https://jmbiz.imweb.me/", name: "스타일 3" },
+  { url: "https://ksupport-center.imweb.me/", name: "스타일 4" },
+  { url: "https://dkcenter.imweb.me/", name: "스타일 5" },
+  { url: "https://fpbiz.imweb.me/", name: "스타일 6" },
+];
 
 interface Submission {
   id: string;
@@ -51,6 +63,8 @@ export default function SubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [styleDialogOpen, setStyleDialogOpen] = useState<string | null>(null);
+  const colorSectionRef = useRef<HTMLDivElement>(null);
 
   // 파일 업로드 상태
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, UploadedFile>>({
@@ -58,6 +72,14 @@ export default function SubmissionsPage() {
     idCard: { name: "", uploaded: false, isSensitive: true },
     bankBook: { name: "", uploaded: false, isSensitive: true },
     profilePhoto: { name: "", uploaded: false },
+    blogDesignRef: { name: "", uploaded: false }, // 블로그 참고디자인
+  });
+
+  // 계좌 정보 분리
+  const [bankInfo, setBankInfo] = useState({
+    bankName: "",
+    accountNumber: "",
+    accountHolder: "",
   });
 
   const [formData, setFormData] = useState({
@@ -68,8 +90,8 @@ export default function SubmissionsPage() {
     bankAccount: "",
     deliveryAddress: "",
     websiteStyle: "",
-    websiteColor: "",
-    blogDesignNote: "",
+    websiteColor: "#3B82F6",
+    blogDesignNote: "", // 이제 파일 URL 저장
     additionalNote: "",
   });
 
@@ -91,15 +113,33 @@ export default function SubmissionsPage() {
           bankAccount: data.submission.bankAccount || "",
           deliveryAddress: data.submission.deliveryAddress || "",
           websiteStyle: data.submission.websiteStyle || "",
-          websiteColor: data.submission.websiteColor || "",
+          websiteColor: data.submission.websiteColor || "#3B82F6",
           blogDesignNote: data.submission.blogDesignNote || "",
           additionalNote: data.submission.additionalNote || "",
         });
+        // 계좌 정보 파싱 (은행명 / 계좌번호 / 예금주 형식)
+        if (data.submission.bankAccount) {
+          const parts = data.submission.bankAccount.split(" / ");
+          if (parts.length === 3) {
+            setBankInfo({
+              bankName: parts[0] || "",
+              accountNumber: parts[1] || "",
+              accountHolder: parts[2] || "",
+            });
+          }
+        }
         // 이미 업로드된 프로필 사진 상태 복원
         if (data.submission.profilePhoto) {
           setUploadedFiles(prev => ({
             ...prev,
             profilePhoto: { name: "프로필사진", uploaded: true, url: data.submission.profilePhoto },
+          }));
+        }
+        // 블로그 참고디자인 복원
+        if (data.submission.blogDesignNote) {
+          setUploadedFiles(prev => ({
+            ...prev,
+            blogDesignRef: { name: "참고디자인", uploaded: true, url: data.submission.blogDesignNote },
           }));
         }
       }
@@ -150,7 +190,9 @@ export default function SubmissionsPage() {
 
       // 일반 파일인 경우 URL 저장
       if (!data.isSensitive && data.publicUrl) {
-        setFormData(prev => ({ ...prev, [fileType]: data.publicUrl }));
+        // blogDesignRef는 blogDesignNote에 저장
+        const fieldName = fileType === "blogDesignRef" ? "blogDesignNote" : fileType;
+        setFormData(prev => ({ ...prev, [fieldName]: data.publicUrl }));
       }
 
       return true;
@@ -174,12 +216,18 @@ export default function SubmissionsPage() {
       type => uploadedFiles[type]?.uploaded
     );
 
+    // 계좌 정보 합치기
+    const bankAccount = bankInfo.bankName && bankInfo.accountNumber && bankInfo.accountHolder
+      ? `${bankInfo.bankName} / ${bankInfo.accountNumber} / ${bankInfo.accountHolder}`
+      : "";
+
     try {
       const res = await fetch("/api/submissions", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          bankAccount,
           sensitiveFilesUploaded,
         }),
       });
@@ -294,12 +342,18 @@ export default function SubmissionsPage() {
     type => uploadedFiles[type]?.uploaded
   );
 
+  const bankInfoComplete = !!(
+    bankInfo.bankName &&
+    bankInfo.accountNumber &&
+    bankInfo.accountHolder
+  );
+
   const isComplete = !!(
     formData.profilePhoto &&
     formData.brandName &&
     formData.contactEmail &&
     formData.contactPhone &&
-    formData.bankAccount &&
+    bankInfoComplete &&
     sensitiveFilesComplete
   );
 
@@ -437,18 +491,37 @@ export default function SubmissionsPage() {
                 />
               </div>
             </div>
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                정산 계좌 정보 <span className="text-red-500">*</span>
+                고객 입금계좌 정보 <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                광고비 정산 시 입금받으실 계좌 정보를 입력해주세요
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="relative">
+                  <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={bankInfo.bankName}
+                    onChange={(e) => setBankInfo(prev => ({ ...prev, bankName: e.target.value }))}
+                    placeholder="은행명"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
                 <input
                   type="text"
-                  value={formData.bankAccount}
-                  onChange={(e) => handleChange("bankAccount", e.target.value)}
-                  placeholder="은행명 / 계좌번호 / 예금주"
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={bankInfo.accountNumber}
+                  onChange={(e) => setBankInfo(prev => ({ ...prev, accountNumber: e.target.value }))}
+                  placeholder="계좌번호"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+                <input
+                  type="text"
+                  value={bankInfo.accountHolder}
+                  onChange={(e) => setBankInfo(prev => ({ ...prev, accountHolder: e.target.value }))}
+                  placeholder="예금주"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
             </div>
@@ -476,43 +549,103 @@ export default function SubmissionsPage() {
             <Palette className="w-5 h-5 text-blue-600" />
             디자인 정보
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                웹사이트 스타일
-              </label>
-              <input
-                type="text"
-                value={formData.websiteStyle}
-                onChange={(e) => handleChange("websiteStyle", e.target.value)}
-                placeholder="선호하는 스타일 (모던, 클래식 등)"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
+
+          {/* 웹사이트 스타일 선택 */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              웹사이트 스타일 선택
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+              원하시는 홈페이지 스타일을 선택해주세요. 클릭하면 미리보기를 볼 수 있습니다.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {WEBSITE_STYLES.map((style) => (
+                <div
+                  key={style.url}
+                  className={`relative rounded-lg border-2 overflow-hidden cursor-pointer transition-all ${
+                    formData.websiteStyle === style.url
+                      ? "border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800"
+                      : "border-gray-200 dark:border-gray-600 hover:border-blue-300"
+                  }`}
+                  onClick={() => handleChange("websiteStyle", style.url)}
+                >
+                  {/* 썸네일 */}
+                  <div className="aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-700 relative group">
+                    <iframe
+                      src={style.url}
+                      className="w-full h-full scale-[0.33] origin-top-left pointer-events-none"
+                      style={{ width: '300%', height: '300%' }}
+                      title={style.name}
+                    />
+                    <a
+                      href={style.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center"
+                    >
+                      <span className="opacity-0 group-hover:opacity-100 bg-white/90 dark:bg-gray-800/90 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1">
+                        <ExternalLink className="w-3 h-3" />
+                        새 탭에서 보기
+                      </span>
+                    </a>
+                  </div>
+                  {/* 스타일 이름 */}
+                  <div className="p-2 text-center bg-gray-50 dark:bg-gray-700">
+                    <span className="font-medium text-sm text-gray-900 dark:text-white">{style.name}</span>
+                    {formData.websiteStyle === style.url && (
+                      <CheckCircle className="w-4 h-4 text-blue-500 inline ml-1" />
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                브랜드 컬러
-              </label>
+          </div>
+
+          {/* 브랜드 컬러 (컬러피커) */}
+          <div className="mb-6" ref={colorSectionRef}>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              브랜드 컬러
+            </label>
+            <div className="flex items-center gap-4">
               <input
-                type="text"
+                type="color"
                 value={formData.websiteColor}
                 onChange={(e) => handleChange("websiteColor", e.target.value)}
-                placeholder="주요 색상 (예: #3B82F6, 파란색)"
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-16 h-16 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
+              />
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={formData.websiteColor}
+                  onChange={(e) => handleChange("websiteColor", e.target.value)}
+                  placeholder="#3B82F6"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  컬러피커에서 선택하거나 HEX 코드를 직접 입력하세요
+                </p>
+              </div>
+              {/* 선택된 컬러 미리보기 */}
+              <div
+                className="w-16 h-16 rounded-lg border-2 border-gray-300 dark:border-gray-600"
+                style={{ backgroundColor: formData.websiteColor }}
               />
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                블로그 디자인 요청사항
-              </label>
-              <textarea
-                value={formData.blogDesignNote}
-                onChange={(e) => handleChange("blogDesignNote", e.target.value)}
-                placeholder="블로그 디자인에 대한 요청사항을 입력하세요"
-                rows={3}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
-              />
-            </div>
+          </div>
+
+          {/* 블로그 참고 디자인 (파일 업로드) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              블로그 참고 디자인
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              원하시는 블로그 디자인 참고 이미지를 업로드해주세요
+            </p>
+            <FileUploadField
+              label=""
+              fileType="blogDesignRef"
+            />
           </div>
         </div>
 
