@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Upload,
   FileText,
@@ -14,11 +14,13 @@ import {
   Save,
   CheckCircle,
   AlertCircle,
+  Shield,
+  X,
+  Image,
 } from "lucide-react";
 
 interface Submission {
   id: string;
-  businessLicense: string | null;
   profilePhoto: string | null;
   brandName: string | null;
   contactEmail: string | null;
@@ -31,7 +33,18 @@ interface Submission {
   additionalNote: string | null;
   status: string;
   isComplete: boolean;
+  slackChannelId: string | null;
 }
+
+interface UploadedFile {
+  name: string;
+  uploaded: boolean;
+  url?: string;
+  isSensitive?: boolean;
+}
+
+// 민감정보 파일 타입
+const SENSITIVE_FILE_TYPES = ["businessLicense", "idCard", "bankBook"];
 
 export default function SubmissionsPage() {
   const [submission, setSubmission] = useState<Submission | null>(null);
@@ -39,8 +52,15 @@ export default function SubmissionsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // 파일 업로드 상태
+  const [uploadedFiles, setUploadedFiles] = useState<Record<string, UploadedFile>>({
+    businessLicense: { name: "", uploaded: false, isSensitive: true },
+    idCard: { name: "", uploaded: false, isSensitive: true },
+    bankBook: { name: "", uploaded: false, isSensitive: true },
+    profilePhoto: { name: "", uploaded: false },
+  });
+
   const [formData, setFormData] = useState({
-    businessLicense: "",
     profilePhoto: "",
     brandName: "",
     contactEmail: "",
@@ -64,7 +84,6 @@ export default function SubmissionsPage() {
       if (data.submission) {
         setSubmission(data.submission);
         setFormData({
-          businessLicense: data.submission.businessLicense || "",
           profilePhoto: data.submission.profilePhoto || "",
           brandName: data.submission.brandName || "",
           contactEmail: data.submission.contactEmail || "",
@@ -76,6 +95,13 @@ export default function SubmissionsPage() {
           blogDesignNote: data.submission.blogDesignNote || "",
           additionalNote: data.submission.additionalNote || "",
         });
+        // 이미 업로드된 프로필 사진 상태 복원
+        if (data.submission.profilePhoto) {
+          setUploadedFiles(prev => ({
+            ...prev,
+            profilePhoto: { name: "프로필사진", uploaded: true, url: data.submission.profilePhoto },
+          }));
+        }
       }
     } catch (error) {
       console.error("Failed to fetch submission:", error);
@@ -89,16 +115,73 @@ export default function SubmissionsPage() {
     setMessage(null);
   };
 
+  // 파일 업로드 핸들러
+  const handleFileUpload = useCallback(async (
+    file: File,
+    fileType: string,
+    title: string
+  ) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("fileType", fileType);
+    formData.append("title", title);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "업로드 실패");
+      }
+
+      setUploadedFiles(prev => ({
+        ...prev,
+        [fileType]: {
+          name: file.name,
+          uploaded: true,
+          url: data.publicUrl,
+          isSensitive: data.isSensitive,
+        },
+      }));
+
+      // 일반 파일인 경우 URL 저장
+      if (!data.isSensitive && data.publicUrl) {
+        setFormData(prev => ({ ...prev, [fileType]: data.publicUrl }));
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`파일 업로드 실패 (${fileType}):`, error);
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "파일 업로드에 실패했습니다",
+      });
+      return false;
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setMessage(null);
 
+    // 민감정보 파일들이 모두 업로드되었는지 확인
+    const sensitiveFilesUploaded = SENSITIVE_FILE_TYPES.every(
+      type => uploadedFiles[type]?.uploaded
+    );
+
     try {
       const res = await fetch("/api/submissions", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          sensitiveFilesUploaded,
+        }),
       });
 
       const data = await res.json();
@@ -119,6 +202,86 @@ export default function SubmissionsPage() {
     }
   };
 
+  // 파일 입력 컴포넌트
+  const FileUploadField = ({
+    label,
+    fileType,
+    required,
+    isSensitive,
+  }: {
+    label: string;
+    fileType: string;
+    required?: boolean;
+    isSensitive?: boolean;
+  }) => {
+    const [uploading, setUploading] = useState(false);
+    const fileState = uploadedFiles[fileType];
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setUploading(true);
+      await handleFileUpload(file, fileType, label);
+      setUploading(false);
+    };
+
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {label} {required && <span className="text-red-500">*</span>}
+          {isSensitive && (
+            <span className="ml-2 inline-flex items-center text-xs text-amber-600 dark:text-amber-400">
+              <Shield className="w-3 h-3 mr-1" />
+              서버 미저장
+            </span>
+          )}
+        </label>
+        <div className="relative">
+          {fileState?.uploaded ? (
+            <div className="flex items-center gap-2 p-3 rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20">
+              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <span className="text-sm text-green-700 dark:text-green-300 truncate flex-1">
+                {fileState.name}
+              </span>
+              {isSensitive && (
+                <span className="text-xs text-green-600 dark:text-green-400">슬랙 전송 완료</span>
+              )}
+              <button
+                type="button"
+                onClick={() => setUploadedFiles(prev => ({
+                  ...prev,
+                  [fileType]: { name: "", uploaded: false, isSensitive },
+                }))}
+                className="p-1 hover:bg-green-200 dark:hover:bg-green-800 rounded"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer transition-colors">
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={uploading}
+              />
+              {uploading ? (
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Upload className="w-5 h-5 text-gray-400" />
+              )}
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {uploading ? "업로드 중..." : "파일을 선택하세요 (jpg, png, pdf)"}
+              </span>
+            </label>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -127,13 +290,17 @@ export default function SubmissionsPage() {
     );
   }
 
+  const sensitiveFilesComplete = SENSITIVE_FILE_TYPES.every(
+    type => uploadedFiles[type]?.uploaded
+  );
+
   const isComplete = !!(
-    formData.businessLicense &&
     formData.profilePhoto &&
     formData.brandName &&
     formData.contactEmail &&
     formData.contactPhone &&
-    formData.bankAccount
+    formData.bankAccount &&
+    sensitiveFilesComplete
   );
 
   return (
@@ -157,7 +324,7 @@ export default function SubmissionsPage() {
             <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
             <div>
               <p className="font-medium text-yellow-800 dark:text-yellow-200">자료 제출 필요</p>
-              <p className="text-sm text-yellow-600 dark:text-yellow-400">필수 자료를 모두 입력해주세요.</p>
+              <p className="text-sm text-yellow-600 dark:text-yellow-400">필수 자료를 모두 업로드해주세요.</p>
             </div>
           </>
         )}
@@ -175,43 +342,49 @@ export default function SubmissionsPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 기본 정보 */}
+        {/* 민감정보 파일 업로드 */}
+        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800">
+          <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100 mb-4 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-amber-600" />
+            민감정보 서류 (서버 미저장)
+          </h3>
+          <p className="text-sm text-amber-700 dark:text-amber-300 mb-4">
+            아래 서류는 보안을 위해 서버에 저장되지 않고, 슬랙 채널로 직접 전송됩니다.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FileUploadField
+              label="사업자등록증"
+              fileType="businessLicense"
+              required
+              isSensitive
+            />
+            <FileUploadField
+              label="신분증"
+              fileType="idCard"
+              required
+              isSensitive
+            />
+            <FileUploadField
+              label="통장사본"
+              fileType="bankBook"
+              required
+              isSensitive
+            />
+          </div>
+        </div>
+
+        {/* 일반 파일 업로드 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Building className="w-5 h-5 text-blue-600" />
-            기본 정보
+            <Image className="w-5 h-5 text-blue-600" />
+            프로필 정보
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                사업자등록증 URL <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="url"
-                  value={formData.businessLicense}
-                  onChange={(e) => handleChange("businessLicense", e.target.value)}
-                  placeholder="https://..."
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                프로필 사진 URL <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="url"
-                  value={formData.profilePhoto}
-                  onChange={(e) => handleChange("profilePhoto", e.target.value)}
-                  placeholder="https://..."
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
+            <FileUploadField
+              label="프로필 사진"
+              fileType="profilePhoto"
+              required
+            />
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 브랜드명 <span className="text-red-500">*</span>

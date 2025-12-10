@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import {
+  createSubmissionChannel,
+  pushSubmissionToSlack,
+  uploadFileToSlackFromUrl,
+} from "@/lib/slack";
 
 // 텔레그램 관리자 알림 발송
 async function sendAdminNotification(userName: string, clientName: string) {
@@ -73,8 +78,9 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json();
     const {
-      businessLicense,
+      // 파일 URL (R2에 저장된 일반 파일들)
       profilePhoto,
+      // 텍스트 정보
       brandName,
       contactEmail,
       contactPhone,
@@ -84,16 +90,19 @@ export async function PUT(request: NextRequest) {
       websiteColor,
       blogDesignNote,
       additionalNote,
+      // 민감정보는 별도 API로 처리되어 여기서는 플래그만 받음
+      sensitiveFilesUploaded,
     } = body;
 
     // 필수 필드 모두 채워졌는지 확인
+    // 민감정보(사업자등록증, 신분증, 통장)는 별도 업로드 완료 여부 확인
     const isComplete = !!(
-      businessLicense &&
       profilePhoto &&
       brandName &&
       contactEmail &&
       contactPhone &&
-      bankAccount
+      bankAccount &&
+      sensitiveFilesUploaded // 민감정보 파일들이 슬랙으로 전송 완료됨
     );
 
     // 기존 submission 조회 (제출 여부 확인)
@@ -104,12 +113,60 @@ export async function PUT(request: NextRequest) {
     const wasNotSubmitted = !existingSubmission || existingSubmission.status === "DRAFT";
     const isNewSubmission = isComplete && wasNotSubmitted;
 
+    // 사용자 정보 조회
+    const userInfo = await prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { name: true, clientName: true, email: true, phone: true },
+    });
+
+    // 새로운 완료 제출인 경우 슬랙 채널 생성
+    let slackChannelId = existingSubmission?.slackChannelId || null;
+
+    if (isNewSubmission && userInfo && !slackChannelId) {
+      // 슬랙 채널 생성
+      slackChannelId = await createSubmissionChannel({
+        clientName: userInfo.clientName,
+        userName: userInfo.name,
+        userEmail: userInfo.email,
+        userPhone: userInfo.phone,
+      });
+
+      if (slackChannelId) {
+        console.log(`✅ 슬랙 채널 생성 완료: ${slackChannelId}`);
+
+        // 제출 정보를 슬랙에 전송
+        await pushSubmissionToSlack({
+          channelId: slackChannelId,
+          submissionData: {
+            brandName,
+            contactEmail,
+            contactPhone,
+            deliveryAddress,
+            websiteStyle,
+            websiteColor,
+            blogDesignNote,
+            additionalNote,
+          },
+        });
+
+        // 프로필 사진을 슬랙에 업로드 (R2 URL에서)
+        if (profilePhoto) {
+          await uploadFileToSlackFromUrl({
+            channelId: slackChannelId,
+            fileUrl: profilePhoto,
+            fileName: "프로필사진.webp",
+            title: "프로필 사진",
+          });
+        }
+      }
+    }
+
     // upsert: 없으면 생성, 있으면 업데이트
     const submission = await prisma.submission.upsert({
       where: { userId: user.userId },
       create: {
         userId: user.userId,
-        businessLicense,
+        businessLicense: null, // 민감정보는 DB에 저장 안함
         profilePhoto,
         brandName,
         contactEmail,
@@ -124,9 +181,9 @@ export async function PUT(request: NextRequest) {
         status: isComplete ? "SUBMITTED" : "DRAFT",
         completedAt: isComplete ? new Date() : null,
         submittedAt: isComplete ? new Date() : null,
+        slackChannelId,
       },
       update: {
-        businessLicense,
         profilePhoto,
         brandName,
         contactEmail,
@@ -146,25 +203,19 @@ export async function PUT(request: NextRequest) {
               submittedAt: isComplete && wasNotSubmitted ? new Date() : existingSubmission?.submittedAt,
             }),
         completedAt: isComplete ? new Date() : null,
+        slackChannelId: slackChannelId || existingSubmission?.slackChannelId,
       },
     });
 
     // 새로 제출된 경우 관리자에게 알림
-    if (isNewSubmission) {
-      // 사용자 정보 조회
-      const userInfo = await prisma.user.findUnique({
-        where: { id: user.userId },
-        select: { name: true, clientName: true },
-      });
-
-      if (userInfo) {
-        sendAdminNotification(userInfo.name, userInfo.clientName);
-      }
+    if (isNewSubmission && userInfo) {
+      sendAdminNotification(userInfo.name, userInfo.clientName);
     }
 
     return NextResponse.json({
       success: true,
       submission,
+      slackChannelId,
       message: isComplete ? "자료가 제출되었습니다" : "임시 저장되었습니다",
     });
   } catch (error) {
