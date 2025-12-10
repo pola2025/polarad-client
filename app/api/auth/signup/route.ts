@@ -118,9 +118,8 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Signup error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "회원가입 처리 중 오류가 발생했습니다", detail: errorMessage },
+      { error: "회원가입 처리 중 오류가 발생했습니다" },
       { status: 500 }
     );
   }
