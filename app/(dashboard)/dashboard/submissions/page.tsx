@@ -569,33 +569,34 @@ export default function SubmissionsPage() {
                   }`}
                   onClick={() => handleChange("websiteStyle", style.url)}
                 >
+                  {/* 선택 체크 표시 */}
+                  {formData.websiteStyle === style.url && (
+                    <div className="absolute top-2 right-2 z-10 bg-blue-500 rounded-full p-1">
+                      <CheckCircle className="w-4 h-4 text-white" />
+                    </div>
+                  )}
                   {/* 썸네일 */}
-                  <div className="aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-700 relative group">
+                  <div className="aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-700 relative">
                     <iframe
                       src={style.url}
                       className="w-full h-full scale-[0.33] origin-top-left pointer-events-none"
                       style={{ width: '300%', height: '300%' }}
                       title={style.name}
                     />
+                  </div>
+                  {/* 하단: 스타일 이름 + 새탭 버튼 */}
+                  <div className="p-2 bg-gray-50 dark:bg-gray-700 flex items-center justify-between">
+                    <span className="font-medium text-sm text-gray-900 dark:text-white">{style.name}</span>
                     <a
                       href={style.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center"
+                      className="px-2 py-1 bg-gray-200 dark:bg-gray-600 hover:bg-blue-500 hover:text-white rounded text-xs flex items-center gap-1 transition-colors"
                     >
-                      <span className="opacity-0 group-hover:opacity-100 bg-white/90 dark:bg-gray-800/90 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1">
-                        <ExternalLink className="w-3 h-3" />
-                        새 탭에서 보기
-                      </span>
+                      <ExternalLink className="w-3 h-3" />
+                      새탭
                     </a>
-                  </div>
-                  {/* 스타일 이름 */}
-                  <div className="p-2 text-center bg-gray-50 dark:bg-gray-700">
-                    <span className="font-medium text-sm text-gray-900 dark:text-white">{style.name}</span>
-                    {formData.websiteStyle === style.url && (
-                      <CheckCircle className="w-4 h-4 text-blue-500 inline ml-1" />
-                    )}
                   </div>
                 </div>
               ))}
