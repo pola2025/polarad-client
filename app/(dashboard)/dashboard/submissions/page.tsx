@@ -338,23 +338,19 @@ export default function SubmissionsPage() {
     );
   }
 
-  const sensitiveFilesComplete = SENSITIVE_FILE_TYPES.every(
-    type => uploadedFiles[type]?.uploaded
-  );
-
   const bankInfoComplete = !!(
     bankInfo.bankName &&
     bankInfo.accountNumber &&
     bankInfo.accountHolder
   );
 
+  // 필수 입력 완료 여부 (민감정보 파일은 슬랙 채널 생성 후 업로드 가능하므로 제외)
   const isComplete = !!(
-    formData.profilePhoto &&
+    (formData.profilePhoto || uploadedFiles.profilePhoto?.uploaded) &&
     formData.brandName &&
     formData.contactEmail &&
     formData.contactPhone &&
-    bankInfoComplete &&
-    sensitiveFilesComplete
+    bankInfoComplete
   );
 
   return (
