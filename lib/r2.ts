@@ -25,20 +25,21 @@ export const SENSITIVE_FILE_TYPES = [
   "businessLicense",  // 사업자등록증
 ];
 
-// R2 클라이언트 설정
+// R2 클라이언트 설정 (기존 CLOUDFLARE_* 환경변수 사용)
 const getR2Client = () => {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || "";
   return new S3Client({
     region: "auto",
-    endpoint: process.env.R2_ENDPOINT || "",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
-      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
+      accessKeyId: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID || "",
+      secretAccessKey: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || "",
     },
   });
 };
 
-const BUCKET_NAME = process.env.R2_BUCKET_NAME || "polarad-uploads";
-const PUBLIC_URL = process.env.R2_PUBLIC_URL || "";
+const BUCKET_NAME = process.env.CLOUDFLARE_R2_BUCKET || "polarad-uploads";
+const PUBLIC_URL = process.env.CLOUDFLARE_R2_PUBLIC_DOMAIN || "";
 
 /**
  * Presigned Upload URL 생성
@@ -100,13 +101,15 @@ export async function uploadToR2(
 export async function compressToWebP(
   buffer: Buffer,
   quality: number = 80
-): Promise<Buffer> {
+): Promise<Buffer<ArrayBuffer>> {
   // sharp는 동적 import (서버 사이드에서만 사용)
   const sharp = (await import("sharp")).default;
 
-  return sharp(buffer)
+  const result = await sharp(buffer)
     .webp({ quality })
     .toBuffer();
+
+  return result as Buffer<ArrayBuffer>;
 }
 
 /**
