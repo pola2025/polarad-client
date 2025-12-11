@@ -358,7 +358,7 @@ export default function SubmissionsPage() {
 
         {/* 설명 */}
         {description && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{description}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 whitespace-pre-line md:whitespace-normal">{description}</p>
         )}
 
         {/* 업로드 영역 */}
@@ -424,8 +424,8 @@ export default function SubmissionsPage() {
         {/* 비활성화 오버레이 */}
         {isFormDisabled && (
           <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
-            <Lock className="w-3 h-3" />
-            <span>수정하려면 아래 수정하기 버튼을 눌러주세요</span>
+            <Lock className="w-3 h-3 flex-shrink-0" />
+            <span className="whitespace-pre-line md:whitespace-normal">{"수정하려면 아래\n수정하기 버튼을 눌러주세요"}</span>
           </div>
         )}
       </div>
@@ -840,7 +840,7 @@ export default function SubmissionsPage() {
             <FileUploadField
               label="블로그 참고 디자인"
               fileType="blogDesignRef"
-              description="원하시는 블로그 디자인 참고 이미지를 업로드해주세요"
+              description={"원하시는 블로그 디자인\n참고 이미지를 업로드해주세요"}
             />
           </div>
 
@@ -881,7 +881,7 @@ export default function SubmissionsPage() {
             value={formData.additionalNote}
             onChange={(e) => handleChange("additionalNote", e.target.value)}
             disabled={isFormDisabled}
-            placeholder="기타 요청사항이 있으시면 입력해주세요"
+            placeholder={"기타 요청사항이 있으시면\n입력해주세요"}
             rows={4}
             className={`w-full px-4 py-2 rounded-lg border transition-colors resize-none ${
               isFormDisabled
