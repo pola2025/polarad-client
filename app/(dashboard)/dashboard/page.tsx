@@ -101,26 +101,20 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Welcome message with overall progress */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">
-              안녕하세요, {data?.user?.clientName || "고객"}님!
-            </h2>
-            <p className="mt-1 text-blue-100">
-              마케팅 패키지 진행 현황을 확인하세요.
-            </p>
-          </div>
-          {(data?.workflows?.total ?? 0) > 0 && (
-            <div className="text-right">
-              <p className="text-sm text-blue-200">전체 진행률</p>
-              <p className="text-3xl font-bold">{data?.overallProgress}%</p>
-            </div>
-          )}
-        </div>
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-4 md:p-6 text-white">
+        <h2 className="text-lg md:text-2xl font-bold whitespace-nowrap">
+          안녕하세요, {data?.user?.clientName || "고객"}님!
+        </h2>
+        <p className="mt-1 text-sm md:text-base text-blue-100">
+          마케팅 패키지 진행 현황을 확인하세요.
+        </p>
         {/* Progress bar */}
         {(data?.workflows?.total ?? 0) > 0 && (
           <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs md:text-sm text-blue-200">전체 진행률</span>
+              <span className="text-xl md:text-2xl font-bold">{data?.overallProgress}%</span>
+            </div>
             <div className="h-2 bg-blue-800/50 rounded-full overflow-hidden">
               <div
                 className="h-full bg-white rounded-full transition-all duration-500"
