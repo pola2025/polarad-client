@@ -57,6 +57,7 @@ export async function GET(
       endDate: contract.endDate || new Date(),
       signedAt: contract.signedAt || new Date(),
       clientSignature: contract.clientSignature || undefined,
+      isPromotion: contract.isPromotion,
     });
 
     return new NextResponse(new Uint8Array(pdfBuffer), {

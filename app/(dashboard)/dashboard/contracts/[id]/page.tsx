@@ -38,6 +38,7 @@ interface Contract {
   contractPeriod: number;
   totalAmount: number;
   additionalNotes: string | null;
+  isPromotion: boolean;
   package: {
     displayName: string;
     features: string[];
@@ -463,6 +464,10 @@ export default function ContractWritePage({
                   <li>웹사이트 제작 서비스를 이용하는 경우, 계약 기간 종료 후 2년차부터 연간 유지비용이 발생한다.</li>
                   <li>연간 유지비용: 도메인 및 호스팅 포함 <strong>500,000원/년</strong> (부가세 별도)</li>
                   <li>호스팅 트래픽이 월 100GB를 초과하는 경우, 초과 트래픽에 대해 별도 비용이 청구될 수 있다.</li>
+                  <li>Meta 광고 연동 서비스(광고 자동화, 알림, 대시보드 등)는 <strong>{contract.isPromotion ? '계약일로부터 2년간' : '계약일로부터 1년간'}</strong> 무료로 제공된다.</li>
+                  {!contract.isPromotion && (
+                    <li>Meta 광고 연동 서비스 무료 기간 종료 후 계속 이용 시 <strong>월 220,000원 (3개월 단위 결제, 부가세 별도)</strong>이 청구된다.</li>
+                  )}
                   <li>유지비용 미납 시 서비스가 중단될 수 있으며, 중단 후 30일 경과 시 데이터가 삭제될 수 있다.</li>
                   <li>갑은 계약 종료 전 데이터 백업을 요청할 수 있으며, 을은 합리적인 범위 내에서 협조한다.</li>
                 </ol>

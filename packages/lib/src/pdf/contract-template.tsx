@@ -154,6 +154,7 @@ interface ContractPDFProps {
   endDate: string;
   signedAt: string;
   clientSignature?: string;
+  isPromotion?: boolean;
 }
 
 export function ContractPDF({
@@ -173,6 +174,7 @@ export function ContractPDF({
   endDate,
   signedAt,
   clientSignature,
+  isPromotion,
 }: ContractPDFProps) {
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('ko-KR') + '원';
@@ -326,8 +328,10 @@ export function ContractPDF({
               1. 웹사이트 제작 서비스를 이용하는 경우, 계약 기간 종료 후 2년차부터 연간 유지비용이 발생한다.{'\n'}
               2. 연간 유지비용: 도메인 및 호스팅 포함 500,000원/년 (부가세 별도){'\n'}
               3. 호스팅 트래픽이 월 100GB를 초과하는 경우, 초과 트래픽에 대해 별도 비용이 청구될 수 있다.{'\n'}
-              4. 유지비용 미납 시 서비스가 중단될 수 있으며, 중단 후 30일 경과 시 데이터가 삭제될 수 있다.{'\n'}
-              5. 갑은 계약 종료 전 데이터 백업을 요청할 수 있으며, 을은 합리적인 범위 내에서 협조한다.
+              4. Meta 광고 연동 서비스(광고 자동화, 알림, 대시보드 등)는 {isPromotion ? '계약일로부터 2년간' : '계약일로부터 1년간'} 무료로 제공된다.{'\n'}
+              {isPromotion ? '' : '5. Meta 광고 연동 서비스 무료 기간 종료 후 계속 이용 시 월 220,000원 (3개월 단위 결제, 부가세 별도)이 청구된다.\n'}
+              {isPromotion ? '5' : '6'}. 유지비용 미납 시 서비스가 중단될 수 있으며, 중단 후 30일 경과 시 데이터가 삭제될 수 있다.{'\n'}
+              {isPromotion ? '6' : '7'}. 갑은 계약 종료 전 데이터 백업을 요청할 수 있으며, 을은 합리적인 범위 내에서 협조한다.
             </Text>
           </View>
         </View>

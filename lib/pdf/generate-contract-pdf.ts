@@ -21,6 +21,7 @@ export interface ContractPDFData {
   endDate: Date;
   signedAt: Date;
   clientSignature?: string;
+  isPromotion?: boolean;
 }
 
 export async function generateContractPDF(data: ContractPDFData): Promise<Buffer> {
