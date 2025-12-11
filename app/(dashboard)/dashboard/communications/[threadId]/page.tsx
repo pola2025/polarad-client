@@ -11,6 +11,10 @@ import {
   User,
   Shield,
   Calendar,
+  Paperclip,
+  X,
+  FileText,
+  Image as ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -19,6 +23,7 @@ interface Message {
   authorType: string;
   authorName: string;
   content: string;
+  attachments?: string[];
   createdAt: string;
   expectedCompletionDate?: string;
 }
@@ -59,8 +64,11 @@ export default function ThreadDetailPage() {
   const [thread, setThread] = useState<Thread | null>(null);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState("");
+  const [attachments, setAttachments] = useState<{ name: string; url: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchThread();
@@ -92,8 +100,55 @@ export default function ThreadDetailPage() {
     }
   };
 
+  // 파일 업로드 핸들러
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+
+    try {
+      for (const file of Array.from(files)) {
+        if (file.size > 10 * 1024 * 1024) {
+          alert(`${file.name}: 파일 크기는 10MB를 초과할 수 없습니다`);
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("fileType", "communication");
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "업로드 실패");
+        }
+
+        setAttachments((prev) => [...prev, { name: file.name, url: data.publicUrl }]);
+      }
+    } catch (error) {
+      console.error("File upload error:", error);
+      alert("파일 업로드에 실패했습니다");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // 첨부파일 제거
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSend = async () => {
-    if (!newMessage.trim() || sending) return;
+    if ((!newMessage.trim() && attachments.length === 0) || sending) return;
 
     setSending(true);
 
@@ -101,7 +156,10 @@ export default function ThreadDetailPage() {
       const res = await fetch(`/api/communications/${threadId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: newMessage }),
+        body: JSON.stringify({
+          content: newMessage,
+          attachments: attachments.map((a) => a.url),
+        }),
       });
 
       const data = await res.json();
@@ -111,6 +169,7 @@ export default function ThreadDetailPage() {
       }
 
       setNewMessage("");
+      setAttachments([]);
       fetchThread();
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -244,13 +303,45 @@ export default function ThreadDetailPage() {
                     {formatDate(msg.createdAt)}
                   </span>
                 </div>
-                <p
-                  className={`whitespace-pre-wrap ${
-                    isAdmin ? "text-gray-700 dark:text-gray-300" : "text-white"
-                  }`}
-                >
-                  {msg.content}
-                </p>
+                {msg.content && (
+                  <p
+                    className={`whitespace-pre-wrap ${
+                      isAdmin ? "text-gray-700 dark:text-gray-300" : "text-white"
+                    }`}
+                  >
+                    {msg.content}
+                  </p>
+                )}
+                {/* 첨부파일 표시 */}
+                {msg.attachments && msg.attachments.length > 0 && (
+                  <div className={`mt-2 space-y-1 ${msg.content ? "pt-2 border-t" : ""} ${
+                    isAdmin ? "border-gray-200 dark:border-gray-600" : "border-blue-500"
+                  }`}>
+                    {msg.attachments.map((url, i) => {
+                      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                      return (
+                        <a
+                          key={i}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center gap-2 text-sm ${
+                            isAdmin
+                              ? "text-blue-600 hover:text-blue-700"
+                              : "text-blue-100 hover:text-white"
+                          }`}
+                        >
+                          {isImage ? (
+                            <ImageIcon className="w-4 h-4" />
+                          ) : (
+                            <FileText className="w-4 h-4" />
+                          )}
+                          첨부파일 {i + 1}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
                 {msg.expectedCompletionDate && (
                   <div
                     className={`mt-2 pt-2 border-t ${
@@ -273,7 +364,49 @@ export default function ThreadDetailPage() {
       {/* 입력 영역 */}
       {!isResolved ? (
         <div className="mt-4 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+          {/* 첨부파일 목록 */}
+          {attachments.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {attachments.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"
+                >
+                  <Paperclip className="w-3 h-3 text-gray-500" />
+                  <span className="text-gray-700 dark:text-gray-300 max-w-[150px] truncate">
+                    {file.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(index)}
+                    className="text-gray-400 hover:text-red-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex gap-3">
+            {/* 파일 첨부 버튼 */}
+            <label className={`p-2 rounded-lg cursor-pointer transition-colors self-end ${
+              uploading ? "bg-gray-200 dark:bg-gray-600" : "hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}>
+              {uploading ? (
+                <div className="w-5 h-5 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Paperclip className="w-5 h-5 text-gray-500" />
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                disabled={uploading}
+                accept="image/*,.pdf"
+                className="hidden"
+              />
+            </label>
             <textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
@@ -284,7 +417,7 @@ export default function ThreadDetailPage() {
             />
             <button
               onClick={handleSend}
-              disabled={!newMessage.trim() || sending}
+              disabled={(!newMessage.trim() && attachments.length === 0) || sending}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors self-end"
             >
               {sending ? (
