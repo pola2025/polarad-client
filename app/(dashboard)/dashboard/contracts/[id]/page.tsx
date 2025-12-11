@@ -17,6 +17,9 @@ import {
   CheckCircle,
   AlertCircle,
   ArrowLeft,
+  FileText,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface Contract {
@@ -77,6 +80,8 @@ export default function ContractWritePage({
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
+  const [termsExpanded, setTermsExpanded] = useState(true);
+  const [termsAgreed, setTermsAgreed] = useState(false);
 
   useEffect(() => {
     fetch(`/api/contracts/${id}`)
@@ -191,6 +196,11 @@ export default function ContractWritePage({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!termsAgreed) {
+      alert("계약 조항을 확인하고 동의해주세요.");
+      return;
+    }
+
     if (!hasSignature) {
       alert("서명을 해주세요.");
       return;
@@ -297,7 +307,7 @@ export default function ContractWritePage({
               <FileSignature className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">서비스 이용 계약서</h1>
+              <h1 className="text-xl font-bold">온라인 서비스 계약서</h1>
               <p className="text-blue-100 text-sm mt-0.5">
                 계약번호: {contract.contractNumber}
               </p>
@@ -351,6 +361,151 @@ export default function ContractWritePage({
               </p>
             </div>
           )}
+        </div>
+
+        {/* 계약 조항 전문 */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            onClick={() => setTermsExpanded(!termsExpanded)}
+            className="w-full flex items-center justify-between font-semibold text-gray-900 dark:text-white"
+          >
+            <span className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-600" />
+              계약 조항 전문 (필수 확인)
+            </span>
+            {termsExpanded ? (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            )}
+          </button>
+
+          {termsExpanded && (
+            <div className="mt-4 max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-900 text-sm text-gray-700 dark:text-gray-300 space-y-6">
+              {/* 제3조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제3조 서비스 내용 및 범위</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>을은 갑에게 선택한 패키지에 포함된 약정된 서비스 제작 및 광고관리지원을 제공한다.</li>
+                  <li>서비스의 구체적인 내용은 별첨 서비스 명세서에 따른다.</li>
+                  <li>광고 집행에 필요한 광고비는 갑이 직접 결제하며, 을은 광고 설정 및 리포트 등 제반 서비스를 제공한다.</li>
+                  <li>주요 광고 서비스는 Meta(Facebook, Instagram) 플랫폼을 중심으로 제공하며, 기타 플랫폼은 상호 협의 하에 제공 여부를 결정한다.</li>
+                  <li>광고 소재(광고문구, 영상, 이미지 등)의 제작은 본 서비스에 포함되지 않으며, 갑이 직접 제작하여 을에게 제공해야 한다.</li>
+                  <li>갑이 광고 소재를 제공하지 않을 경우 광고 집행이 불가하며, 이로 인한 지연에 대해 을은 책임지지 않는다.</li>
+                </ol>
+              </div>
+
+              {/* 제4조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제4조 비용 및 결제</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>갑은 계약 체결 시 총 계약 금액을 선금으로 결제해야 하며, 결제 완료 후 서비스가 착수된다.</li>
+                  <li>결제가 완료되지 않은 경우 서비스 제공이 개시되지 않는다.</li>
+                  <li>세금계산서는 결제 완료 후 익월 10일 이내에 발행된다.</li>
+                </ol>
+              </div>
+
+              {/* 제5조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제5조 계약의 해지</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>갑이 계약 기간 중 해지를 원할 경우, 최소 30일 전에 서면으로 통보해야 한다.</li>
+                  <li>중도 해지 시 위약금이 발생할 수 있다.</li>
+                  <li>을의 귀책사유로 서비스가 중단될 경우, 해당 기간만큼 서비스 기간을 연장한다.</li>
+                </ol>
+              </div>
+
+              {/* 제6조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제6조 제작 진행 및 협조 의무</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>갑은 계약 체결 후 제작에 필요한 자료(로고, 이미지, 텍스트 등)를 30일 이내에 을에게 제공해야 한다.</li>
+                  <li>갑이 자료를 30일 이내에 제공하지 않을 경우, 을은 별도 통보 없이 계약을 해지할 수 있으며, 이 경우 기납입된 금액은 반환하지 않는다.</li>
+                  <li>시안에 대한 피드백은 시안 전달일로부터 3영업일 이내에 제공해야 한다. 기한 내 피드백이 없을 경우 시안이 승인된 것으로 간주한다.</li>
+                  <li>기본 수정 횟수는 3회로 제한되며, 초과 수정 시 회당 50,000원의 추가 비용이 발생한다.</li>
+                  <li>수정 범위는 기존 시안의 부분 수정에 한하며, 전면 재시작 수준의 수정은 별도 견적이 필요하다.</li>
+                </ol>
+              </div>
+
+              {/* 제7조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제7조 환불 규정</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>모든 제작물 제작 전 해지 시: 납입 금액의 <strong>100% 환불</strong></li>
+                  <li>디자인(인쇄물) 제작 완료 후 해지 시: 납입 금액의 <strong>40% 환불</strong></li>
+                  <li>홈페이지 및 디자인 모두 제작 완료 후 해지 시: 납입 금액의 <strong>20% 환불</strong></li>
+                  <li className="ml-4 text-gray-500">※ 인쇄물 제작 완료 후, 홈페이지 제작 중 해지 시 홈페이지 제작은 중단됩니다.</li>
+                  <li>모든 제작물 완료 후 해지 시: <strong>환불 불가</strong> (서비스 용역이 모두 제공된 것으로 간주)</li>
+                  <li>환불 시 제작된 홈페이지는 즉시 사용이 중단된다.</li>
+                  <li>환불 시 광고지원 서비스는 모두 중단된다.</li>
+                  <li>갑의 자료 미제공, 연락 두절 등 갑의 귀책사유로 인한 진행 불가 시: <strong>환불 불가</strong></li>
+                  <li>환불 신청은 서면(이메일 포함)으로만 접수되며, 환불은 신청일로부터 7영업일 이내에 처리된다.</li>
+                </ol>
+              </div>
+
+              {/* 제8조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제8조 면책 및 책임의 제한</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>갑이 제공한 자료(이미지, 텍스트, 상표 등)로 인해 발생하는 저작권, 초상권, 상표권 등 제3자와의 분쟁에 대해 을은 책임을 지지 않으며, 갑이 전적으로 책임진다.</li>
+                  <li>을이 직접 제작하거나 제공한 자료(이미지, 폰트, 템플릿 등)로 인해 발생하는 저작권 등 제3자와의 분쟁에 대해서는 을이 책임진다.</li>
+                  <li>갑의 요청에 따라 제작된 콘텐츠가 관계 법령에 위반될 경우, 그에 따른 법적 책임은 갑에게 있다.</li>
+                  <li>천재지변, 시스템 장애, 외부 플랫폼(Google, Meta 등)의 정책 변경 등 을이 통제할 수 없는 사유로 인한 서비스 중단 또는 손해에 대해 을은 책임을 지지 않는다.</li>
+                  <li>광고 성과는 시장 상황, 경쟁 환경, 상품 특성 등에 따라 달라질 수 있으며, 을은 특정 성과를 보장하지 않는다.</li>
+                </ol>
+              </div>
+
+              {/* 제9조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제9조 유지 비용 및 추가 비용</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>웹사이트 제작 서비스를 이용하는 경우, 계약 기간 종료 후 2년차부터 연간 유지비용이 발생한다.</li>
+                  <li>연간 유지비용: 도메인 및 호스팅 포함 <strong>500,000원/년</strong> (부가세 별도)</li>
+                  <li>호스팅 트래픽이 월 100GB를 초과하는 경우, 초과 트래픽에 대해 별도 비용이 청구될 수 있다.</li>
+                  <li>유지비용 미납 시 서비스가 중단될 수 있으며, 중단 후 30일 경과 시 데이터가 삭제될 수 있다.</li>
+                  <li>갑은 계약 종료 전 데이터 백업을 요청할 수 있으며, 을은 합리적인 범위 내에서 협조한다.</li>
+                </ol>
+              </div>
+
+              {/* 제10조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제10조 지식재산권</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>을이 제작한 결과물의 저작권은 최종 대금 완납 시 갑에게 양도된다.</li>
+                  <li>대금 완납 전까지 결과물의 저작권은 을에게 귀속된다.</li>
+                </ol>
+              </div>
+
+              {/* 제11조 */}
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2">제11조 분쟁 해결</h4>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>본 계약과 관련하여 분쟁이 발생할 경우, 양 당사자는 상호 협의하여 원만히 해결하도록 노력한다.</li>
+                  <li>협의가 이루어지지 않을 경우, 을의 주소지 관할 법원을 전속관할로 한다.</li>
+                </ol>
+              </div>
+            </div>
+          )}
+
+          {/* 약관 동의 체크박스 */}
+          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAgreed}
+                onChange={(e) => setTermsAgreed(e.target.checked)}
+                className="mt-1 w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                <strong className="text-blue-700 dark:text-blue-400">위 계약 조항을 모두 읽었으며, 이에 동의합니다.</strong>
+                <br />
+                <span className="text-gray-500 dark:text-gray-400">
+                  계약 조항에 동의하셔야 서명 및 계약서 제출이 가능합니다.
+                </span>
+              </span>
+            </label>
+          </div>
         </div>
 
         {/* 계약자 정보 입력 폼 */}
@@ -550,7 +705,7 @@ export default function ContractWritePage({
               </Link>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || !termsAgreed}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 {submitting ? (
