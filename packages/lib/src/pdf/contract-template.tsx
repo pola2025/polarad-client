@@ -183,7 +183,7 @@ export function ContractPDF({
       <Page size="A4" style={styles.page}>
         {/* 헤더 */}
         <View style={styles.header}>
-          <Text style={styles.title}>광고 대행 서비스 계약서</Text>
+          <Text style={styles.title}>온라인 서비스 계약서</Text>
           <Text style={styles.subtitle}>계약번호: {contractNumber}</Text>
         </View>
 
@@ -244,7 +244,7 @@ export function ContractPDF({
           <Text style={styles.sectionTitle}>제3조 서비스 내용 및 범위</Text>
           <View style={styles.article}>
             <Text style={styles.articleContent}>
-              1. 을은 갑에게 선택한 패키지에 포함된 광고 대행 서비스를 제공한다.{'\n'}
+              1. 을은 갑에게 선택한 패키지에 포함된 약정된 서비스 제작 및 광고관리지원을 제공한다.{'\n'}
               2. 서비스의 구체적인 내용은 별첨 서비스 명세서에 따른다.{'\n'}
               3. 광고 집행에 필요한 광고비는 갑이 직접 결제하며, 을은 광고 설정 및 리포트 등 제반 서비스를 제공한다.{'\n'}
               4. 주요 광고 서비스는 Meta(Facebook, Instagram) 플랫폼을 중심으로 제공하며, 기타 플랫폼은 상호 협의 하에 제공 여부를 결정한다.{'\n'}
@@ -258,7 +258,7 @@ export function ContractPDF({
           <Text style={styles.sectionTitle}>제4조 비용 및 결제</Text>
           <View style={styles.article}>
             <Text style={styles.articleContent}>
-              1. 갑은 계약 체결 시 총 계약 금액의 100%를 선금으로 결제해야 하며, 결제 완료 후 서비스가 착수된다.{'\n'}
+              1. 갑은 계약 체결 시 총 계약 금액을 선금으로 결제해야 하며, 결제 완료 후 서비스가 착수된다.{'\n'}
               2. 결제가 완료되지 않은 경우 서비스 제공이 개시되지 않는다.{'\n'}
               3. 세금계산서는 결제 완료 후 익월 10일 이내에 발행된다.
             </Text>
@@ -293,12 +293,15 @@ export function ContractPDF({
           <Text style={styles.sectionTitle}>제7조 환불 규정</Text>
           <View style={styles.article}>
             <Text style={styles.articleContent}>
-              1. 제작 착수 전 해지 시: 납입 금액의 100% 환불{'\n'}
-              2. 시안 제작 착수 후, 최초 시안 제출 전 해지 시: 납입 금액의 70% 환불{'\n'}
-              3. 최초 시안 제출 후, 최종 컨펌 전 해지 시: 납입 금액의 50% 환불{'\n'}
-              4. 최종 컨펌 후 또는 제작물 전달 완료 후: 환불 불가{'\n'}
-              5. 갑의 자료 미제공, 연락 두절 등 갑의 귀책사유로 인한 진행 불가 시: 환불 불가{'\n'}
-              6. 환불 신청은 서면(이메일 포함)으로만 접수되며, 환불은 신청일로부터 7영업일 이내에 처리된다.
+              1. 모든 제작물 제작 전 해지 시: 납입 금액의 100% 환불{'\n'}
+              2. 디자인(인쇄물) 제작 완료 후 해지 시: 납입 금액의 40% 환불{'\n'}
+              3. 홈페이지 및 디자인 모두 제작 완료 후 해지 시: 납입 금액의 20% 환불{'\n'}
+                 ※ 인쇄물 제작 완료 후, 홈페이지 제작 중 해지 시 홈페이지 제작은 중단됩니다.{'\n'}
+              4. 모든 제작물 완료 후 해지 시: 환불 불가 (서비스 용역이 모두 제공된 것으로 간주){'\n'}
+              5. 환불 시 제작된 홈페이지는 즉시 사용이 중단된다.{'\n'}
+              6. 환불 시 광고지원 서비스는 모두 중단된다.{'\n'}
+              7. 갑의 자료 미제공, 연락 두절 등 갑의 귀책사유로 인한 진행 불가 시: 환불 불가{'\n'}
+              8. 환불 신청은 서면(이메일 포함)으로만 접수되며, 환불은 신청일로부터 7영업일 이내에 처리된다.
             </Text>
           </View>
         </View>
@@ -334,8 +337,7 @@ export function ContractPDF({
           <View style={styles.article}>
             <Text style={styles.articleContent}>
               1. 을이 제작한 결과물의 저작권은 최종 대금 완납 시 갑에게 양도된다.{'\n'}
-              2. 대금 완납 전까지 결과물의 저작권은 을에게 귀속된다.{'\n'}
-              3. 을은 제작 사례로 포트폴리오에 결과물을 활용할 수 있다.
+              2. 대금 완납 전까지 결과물의 저작권은 을에게 귀속된다.
             </Text>
           </View>
         </View>
