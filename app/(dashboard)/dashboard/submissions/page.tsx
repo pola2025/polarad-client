@@ -720,7 +720,7 @@ export default function SubmissionsPage() {
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               원하시는 홈페이지 스타일을 선택해주세요. 클릭하면 미리보기를 볼 수 있습니다.
             </p>
-            <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 ${isFormDisabled ? "pointer-events-none opacity-60" : ""}`}>
+            <div className={`grid grid-cols-1 md:grid-cols-3 gap-3 ${isFormDisabled ? "pointer-events-none opacity-60" : ""}`}>
               {WEBSITE_STYLES.map((style) => (
                 <div
                   key={style.url}
@@ -750,19 +750,43 @@ export default function SubmissionsPage() {
                       title={style.name}
                     />
                   </div>
-                  {/* 하단: 스타일 이름 + 새탭 버튼 */}
-                  <div className="p-2 bg-gray-50 dark:bg-gray-700 flex items-center justify-between">
-                    <span className="font-medium text-sm text-gray-900 dark:text-white">{style.name}</span>
-                    <a
-                      href={style.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="px-2 py-1 bg-gray-200 dark:bg-gray-600 hover:bg-blue-500 hover:text-white rounded text-xs flex items-center gap-1 transition-colors"
+                  {/* 하단: 스타일 이름 + 새탭 + 선택 버튼 */}
+                  <div className="p-2 bg-gray-50 dark:bg-gray-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm text-gray-900 dark:text-white">{style.name}</span>
+                      <a
+                        href={style.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-2 py-1 bg-gray-200 dark:bg-gray-600 hover:bg-blue-500 hover:text-white rounded text-xs flex items-center gap-1 transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        새탭
+                      </a>
+                    </div>
+                    {/* 선택 버튼 - 별도 줄 */}
+                    <button
+                      type="button"
+                      className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                        formData.websiteStyle === style.url
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isFormDisabled) handleChange("websiteStyle", style.url);
+                      }}
                     >
-                      <ExternalLink className="w-3 h-3" />
-                      새탭
-                    </a>
+                      {formData.websiteStyle === style.url ? (
+                        <span className="flex items-center justify-center gap-1">
+                          <CheckCircle className="w-4 h-4" />
+                          선택됨
+                        </span>
+                      ) : (
+                        "선택하기"
+                      )}
+                    </button>
                   </div>
                 </div>
               ))}
