@@ -74,6 +74,9 @@ export default function SubmissionsPage() {
   // 수정 모드 상태 (제출 완료 후 기본값 false)
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // 수정하기 버튼 강조 애니메이션 상태
+  const [showEditButtonAttention, setShowEditButtonAttention] = useState(false);
+
   // 파일 업로드 상태
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, UploadedFile>>({
     businessLicense: { name: "", uploaded: false, isSensitive: true },
@@ -183,6 +186,11 @@ export default function SubmissionsPage() {
       // 수정하기 버튼으로 스크롤
       editButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       editButtonRef.current?.focus();
+
+      // 버튼 강조 효과 활성화
+      setShowEditButtonAttention(true);
+      // 3초 후 효과 제거
+      setTimeout(() => setShowEditButtonAttention(false), 3000);
     }
   };
 
@@ -891,7 +899,9 @@ export default function SubmissionsPage() {
                   ref={editButtonRef}
                   type="button"
                   onClick={enableEditMode}
-                  className="px-6 py-3 rounded-xl font-medium flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  className={`px-6 py-3 rounded-xl font-medium flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors ${
+                    showEditButtonAttention ? "animate-attention" : ""
+                  }`}
                 >
                   <Edit3 className="w-4 h-4" />
                   수정하기
