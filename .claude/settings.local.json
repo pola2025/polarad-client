@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright__playwright_navigate",
+      "mcp__playwright__playwright_screenshot",
+      "mcp__playwright__playwright_click",
+      "Bash(npm run build:*)",
+      "Bash(npx next build)",
+      "mcp__playwright__playwright_get_visible_text",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: 회원가입 페이지 추가 및 prisma import 수정\n\n- app/(auth)/signup/page.tsx 신규 생성\n- @polarad/database → @/lib/prisma로 import 경로 변경\n- lib/prisma.ts에 프로젝트 구조 주석 추가\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(curl:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(pnpm add:*)",
+      "Bash(vercel env ls:*)",
+      "Bash(printf:*)",
+      "Bash(vercel env add:*)"
+    ]
+  }
+}

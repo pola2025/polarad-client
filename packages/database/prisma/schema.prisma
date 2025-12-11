@@ -43,6 +43,7 @@ model Submission {
   userId          String           @unique @map("user_id")
   businessLicense String?          @map("business_license")
   profilePhoto    String?          @map("profile_photo")
+  logoFile        String?          @map("logo_file")
   brandName       String?          @map("brand_name")
   contactEmail    String?          @map("contact_email")
   contactPhone    String?          @map("contact_phone")

@@ -80,6 +80,7 @@ export async function PUT(request: NextRequest) {
     const {
       // 파일 URL (R2에 저장된 일반 파일들)
       profilePhoto,
+      logoFile,
       // 텍스트 정보
       brandName,
       contactEmail,
@@ -157,6 +158,16 @@ export async function PUT(request: NextRequest) {
             title: "프로필 사진",
           });
         }
+
+        // 로고 파일을 슬랙에 업로드 (R2 URL에서)
+        if (logoFile) {
+          await uploadFileToSlackFromUrl({
+            channelId: slackChannelId,
+            fileUrl: logoFile,
+            fileName: "로고파일.webp",
+            title: "로고 파일",
+          });
+        }
       }
     }
 
@@ -167,6 +178,7 @@ export async function PUT(request: NextRequest) {
         userId: user.userId,
         businessLicense: null, // 민감정보는 DB에 저장 안함
         profilePhoto,
+        logoFile,
         brandName,
         contactEmail,
         contactPhone,
@@ -184,6 +196,7 @@ export async function PUT(request: NextRequest) {
       },
       update: {
         profilePhoto,
+        logoFile,
         brandName,
         contactEmail,
         contactPhone,

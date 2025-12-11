@@ -43,6 +43,7 @@ interface Submission {
   websiteColor: string | null;
   blogDesignNote: string | null;
   additionalNote: string | null;
+  logoFile: string | null;
   status: string;
   isComplete: boolean;
   slackChannelId: string | null;
@@ -73,6 +74,7 @@ export default function SubmissionsPage() {
     bankBook: { name: "", uploaded: false, isSensitive: true },
     profilePhoto: { name: "", uploaded: false },
     blogDesignRef: { name: "", uploaded: false }, // 블로그 참고디자인
+    logoFile: { name: "", uploaded: false }, // 로고 파일
   });
 
   // 계좌 정보 분리
@@ -93,6 +95,7 @@ export default function SubmissionsPage() {
     websiteColor: "#3B82F6",
     blogDesignNote: "", // 이제 파일 URL 저장
     additionalNote: "",
+    logoFile: "", // 로고 파일 URL
   });
 
   useEffect(() => {
@@ -116,6 +119,7 @@ export default function SubmissionsPage() {
           websiteColor: data.submission.websiteColor || "#3B82F6",
           blogDesignNote: data.submission.blogDesignNote || "",
           additionalNote: data.submission.additionalNote || "",
+          logoFile: data.submission.logoFile || "",
         });
         // 계좌 정보 파싱 (은행명 / 계좌번호 / 예금주 형식)
         if (data.submission.bankAccount) {
@@ -140,6 +144,13 @@ export default function SubmissionsPage() {
           setUploadedFiles(prev => ({
             ...prev,
             blogDesignRef: { name: "참고디자인", uploaded: true, url: data.submission.blogDesignNote },
+          }));
+        }
+        // 로고 파일 복원
+        if (data.submission.logoFile) {
+          setUploadedFiles(prev => ({
+            ...prev,
+            logoFile: { name: "로고파일", uploaded: true, url: data.submission.logoFile },
           }));
         }
       }
@@ -190,7 +201,7 @@ export default function SubmissionsPage() {
 
       // 일반 파일인 경우 URL 저장
       if (!data.isSensitive && data.publicUrl) {
-        // blogDesignRef는 blogDesignNote에 저장
+        // blogDesignRef는 blogDesignNote에, logoFile은 그대로 logoFile에 저장
         const fieldName = fileType === "blogDesignRef" ? "blogDesignNote" : fileType;
         setFormData(prev => ({ ...prev, [fieldName]: data.publicUrl }));
       }
@@ -646,6 +657,23 @@ export default function SubmissionsPage() {
             <FileUploadField
               label=""
               fileType="blogDesignRef"
+            />
+          </div>
+
+          {/* 로고 파일 업로드 */}
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              로고 파일
+            </label>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mb-3 space-y-1">
+              <p>• <span className="text-blue-600 dark:text-blue-400 font-medium">기존 제작 로고</span>가 있으시면 업로드해주세요</p>
+              <p>• <span className="text-blue-600 dark:text-blue-400 font-medium">원하는 로고 모양</span>이 있으시면 참고 이미지를 업로드해주세요</p>
+              <p className="text-amber-600 dark:text-amber-400">⚠️ 원하는 모양이 있어야 일러스트 디자인화 가능합니다</p>
+              <p className="text-gray-500 dark:text-gray-500">※ 추상적 의미만으로 자체 제작 불가 / 로고 제작대행 X</p>
+            </div>
+            <FileUploadField
+              label=""
+              fileType="logoFile"
             />
           </div>
         </div>
