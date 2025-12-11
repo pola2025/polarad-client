@@ -28,6 +28,15 @@ const navigation = [
   { name: "내 정보", href: "/dashboard/profile", icon: User },
 ];
 
+// 모바일 하단바에 표시할 주요 메뉴 (5개)
+const mobileNavigation = [
+  { name: "홈", href: "/dashboard", icon: LayoutDashboard },
+  { name: "자료제출", href: "/dashboard/submissions", icon: FolderOpen },
+  { name: "시안", href: "/dashboard/designs", icon: Palette },
+  { name: "문의", href: "/dashboard/communications", icon: MessageSquare },
+  { name: "더보기", href: "#more", icon: Menu },
+];
+
 export default function DashboardLayout({
   children,
 }: {
@@ -153,8 +162,48 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-6">{children}</main>
+        <main className="p-4 lg:p-6 pb-24 lg:pb-6">{children}</main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden">
+        <div className="flex items-center justify-around h-16 px-2">
+          {mobileNavigation.map((item) => {
+            const isMore = item.href === "#more";
+            const isActive = !isMore && pathname === item.href;
+
+            if (isMore) {
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => setSidebarOpen(true)}
+                  className="flex flex-col items-center justify-center flex-1 py-2 text-gray-500 dark:text-gray-400"
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-[10px] mt-1">{item.name}</span>
+                </button>
+              );
+            }
+
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex flex-col items-center justify-center flex-1 py-2 ${
+                  isActive
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-gray-500 dark:text-gray-400"
+                }`}
+              >
+                <item.icon className={`w-5 h-5 ${isActive ? "fill-current" : ""}`} />
+                <span className="text-[10px] mt-1">{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+        {/* Safe area for iOS */}
+        <div className="h-safe-area-inset-bottom bg-white dark:bg-gray-800" />
+      </nav>
     </div>
   );
 }
