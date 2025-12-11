@@ -134,31 +134,31 @@ export default function DesignsPage() {
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-800">
-          <div className="flex items-center gap-2">
-            <Eye className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-            <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">확인 대기</span>
+      <div className="grid grid-cols-3 gap-2 md:gap-4">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-3 md:p-4 border border-yellow-200 dark:border-yellow-800">
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <Eye className="w-4 h-4 md:w-5 md:h-5 text-yellow-600 dark:text-yellow-400" />
+            <span className="text-xs md:text-sm font-medium text-yellow-800 dark:text-yellow-300 whitespace-nowrap">확인대기</span>
           </div>
-          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-2">
+          <p className="text-xl md:text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1 md:mt-2">
             {pendingDesigns.length}
           </p>
         </div>
-        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 border border-orange-200 dark:border-orange-800">
-          <div className="flex items-center gap-2">
-            <RefreshCw className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-            <span className="text-sm font-medium text-orange-800 dark:text-orange-300">수정 요청</span>
+        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 md:p-4 border border-orange-200 dark:border-orange-800">
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <RefreshCw className="w-4 h-4 md:w-5 md:h-5 text-orange-600 dark:text-orange-400" />
+            <span className="text-xs md:text-sm font-medium text-orange-800 dark:text-orange-300 whitespace-nowrap">수정요청</span>
           </div>
-          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mt-2">
+          <p className="text-xl md:text-2xl font-bold text-orange-600 dark:text-orange-400 mt-1 md:mt-2">
             {revisionDesigns.length}
           </p>
         </div>
-        <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-            <span className="text-sm font-medium text-green-800 dark:text-green-300">확정</span>
+        <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 md:p-4 border border-green-200 dark:border-green-800">
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 dark:text-green-400" />
+            <span className="text-xs md:text-sm font-medium text-green-800 dark:text-green-300 whitespace-nowrap">확정</span>
           </div>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-2">
+          <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400 mt-1 md:mt-2">
             {approvedDesigns.length}
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function DesignsPage() {
           <div className="p-12 text-center">
             <Palette className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <p className="text-gray-500 dark:text-gray-400">아직 업로드된 시안이 없습니다</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+            <p className="text-xs md:text-sm text-gray-400 dark:text-gray-500 mt-2 whitespace-nowrap">
               시안이 업로드되면 알림을 보내드릴게요
             </p>
           </div>
