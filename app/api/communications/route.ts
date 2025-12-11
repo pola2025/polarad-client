@@ -1,6 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { postMessage } from "@/lib/slack";
+
+// 슬랙 알림 채널 ID (환경 변수)
+const SLACK_NOTIFICATION_CHANNEL_ID = process.env.SLACK_NOTIFICATION_CHANNEL_ID;
+
+// 슬랙 알림 발송
+async function sendSlackNotification(
+  userName: string,
+  clientName: string,
+  title: string,
+  category: string,
+  content: string,
+  attachments: string[]
+) {
+  if (!SLACK_NOTIFICATION_CHANNEL_ID) {
+    console.log("[Slack] 알림 채널 ID 미설정");
+    return;
+  }
+
+  try {
+    const attachmentText = attachments.length > 0
+      ? `\n📎 첨부파일: ${attachments.length}개`
+      : "";
+
+    await postMessage({
+      channelId: SLACK_NOTIFICATION_CHANNEL_ID,
+      text: `💬 새 문의: ${title}`,
+      blocks: [
+        {
+          type: "header",
+          text: { type: "plain_text", text: "💬 새 문의 접수" },
+        },
+        {
+          type: "section",
+          fields: [
+            { type: "mrkdwn", text: `*고객사:*\n${clientName}` },
+            { type: "mrkdwn", text: `*담당자:*\n${userName}` },
+            { type: "mrkdwn", text: `*카테고리:*\n${category}` },
+            { type: "mrkdwn", text: `*제목:*\n${title}` },
+          ],
+        },
+        {
+          type: "section",
+          text: { type: "mrkdwn", text: `*내용:*\n${content.substring(0, 500)}${content.length > 500 ? "..." : ""}${attachmentText}` },
+        },
+        ...(attachments.length > 0
+          ? attachments.map((url, i) => ({
+              type: "section" as const,
+              text: { type: "mrkdwn" as const, text: `📎 <${url}|첨부파일 ${i + 1}>` },
+            }))
+          : []),
+        {
+          type: "context",
+          elements: [
+            { type: "mrkdwn", text: `📅 ${new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}` },
+          ],
+        },
+      ],
+    });
+
+    console.log("[Slack] 문의 알림 발송 성공");
+  } catch (error) {
+    console.error("[Slack] 문의 알림 발송 실패:", error);
+  }
+}
 
 // 텔레그램 관리자 알림 발송
 async function sendAdminNotification(userName: string, clientName: string, title: string) {
@@ -126,8 +191,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 관리자에게 알림
+    // 관리자에게 알림 (텔레그램 + 슬랙)
     sendAdminNotification(user.name, user.clientName, title);
+    sendSlackNotification(user.name, user.clientName, title, category || "일반", content, attachments || []);
 
     return NextResponse.json({
       success: true,
