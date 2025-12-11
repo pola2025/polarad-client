@@ -67,7 +67,7 @@ export default function ThreadDetailPage() {
   const [attachments, setAttachments] = useState<{ name: string; url: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [sending, setSending] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesTopRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -75,11 +75,11 @@ export default function ThreadDetailPage() {
   }, [threadId]);
 
   useEffect(() => {
-    scrollToBottom();
+    scrollToTop();
   }, [thread?.messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToTop = () => {
+    messagesTopRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const fetchThread = async () => {
@@ -266,9 +266,10 @@ export default function ThreadDetailPage() {
         </div>
       </div>
 
-      {/* 메시지 목록 */}
+      {/* 메시지 목록 - 최신이 위, 오래된 것이 아래 */}
       <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 rounded-xl p-4 space-y-4">
-        {thread.messages.map((msg) => {
+        <div ref={messagesTopRef} />
+        {[...thread.messages].reverse().map((msg) => {
           const isAdmin = msg.authorType === "admin";
           return (
             <div
@@ -358,7 +359,6 @@ export default function ThreadDetailPage() {
             </div>
           );
         })}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* 입력 영역 */}
