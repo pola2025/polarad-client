@@ -853,7 +853,8 @@ export default function SubmissionsPage() {
               <p>• <span className="text-blue-600 dark:text-blue-400 font-medium">기존 제작 로고</span>가 있으시면 업로드해주세요</p>
               <p>• <span className="text-blue-600 dark:text-blue-400 font-medium">원하는 로고 모양</span>이 있으시면 참고 이미지를 업로드해주세요</p>
               <p className="text-amber-600 dark:text-amber-400">⚠️ 원하는 모양이 있어야 일러스트 디자인화 가능합니다</p>
-              <p className="text-gray-500 dark:text-gray-500">※ 추상적 의미만으로 자체 제작 불가 / 로고 제작대행 X</p>
+              <p className="text-gray-500 dark:text-gray-500">※ 추상적 의미만으로 자체 제작 불가</p>
+              <p className="text-gray-500 dark:text-gray-500">※ 로고 제작대행 X</p>
             </div>
             <FileUploadField
               label=""
