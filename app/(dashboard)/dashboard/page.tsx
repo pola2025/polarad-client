@@ -183,10 +183,10 @@ export default function DashboardPage() {
                 const Icon = step.icon;
 
                 return (
-                  <div key={step.key} className="flex items-center">
+                  <div key={step.key} className="flex items-center flex-1 last:flex-none">
                     <div className="flex flex-col items-center">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
                           isCompleted
                             ? "bg-green-500 text-white"
                             : isCurrent
@@ -195,17 +195,17 @@ export default function DashboardPage() {
                         }`}
                       >
                         {isCompleted ? (
-                          <CheckCircle className="w-5 h-5" />
+                          <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
                         ) : (
-                          <Icon className="w-5 h-5" />
+                          <Icon className="w-4 h-4 md:w-5 md:h-5" />
                         )}
                       </div>
-                      <span className={`mt-2 text-xs ${isCurrent ? "font-medium text-blue-600" : "text-gray-500"}`}>
+                      <span className={`mt-1 md:mt-2 text-[10px] md:text-xs ${isCurrent ? "font-medium text-blue-600" : "text-gray-500"}`}>
                         {step.label}
                       </span>
                     </div>
                     {index < arr.length - 1 && (
-                      <div className={`w-12 h-0.5 mx-2 ${isCompleted ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`} />
+                      <div className={`flex-1 h-0.5 mx-1 md:mx-2 ${isCompleted ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`} />
                     )}
                   </div>
                 );

@@ -892,7 +892,7 @@ export default function SubmissionsPage() {
         </div>
 
         {/* 제출/수정 버튼 영역 */}
-        <div className="sticky bottom-4 bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-lg">
+        <div className="sticky bottom-20 lg:bottom-4 bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-lg">
           <div className="flex items-center justify-between gap-4">
             {/* 상태 안내 */}
             <div className="flex items-center gap-2 text-sm">
