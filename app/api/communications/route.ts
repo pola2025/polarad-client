@@ -3,11 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { postMessage } from "@/lib/slack";
 
-// 슬랙 알림 채널 ID (환경 변수)
-const SLACK_NOTIFICATION_CHANNEL_ID = process.env.SLACK_NOTIFICATION_CHANNEL_ID;
-
-// 슬랙 알림 발송
+// 슬랙 알림 발송 (클라이언트 채널로)
 async function sendSlackNotification(
+  slackChannelId: string | null,
   userName: string,
   clientName: string,
   title: string,
@@ -15,8 +13,8 @@ async function sendSlackNotification(
   content: string,
   attachments: string[]
 ) {
-  if (!SLACK_NOTIFICATION_CHANNEL_ID) {
-    console.log("[Slack] 알림 채널 ID 미설정");
+  if (!slackChannelId) {
+    console.log("[Slack] 클라이언트 슬랙 채널 없음 - 알림 건너뜀");
     return;
   }
 
@@ -26,42 +24,56 @@ async function sendSlackNotification(
       : "";
 
     await postMessage({
-      channelId: SLACK_NOTIFICATION_CHANNEL_ID,
-      text: `💬 새 문의: ${title}`,
+      channelId: slackChannelId,
+      text: `🙋 고객 문의: ${title}`,
       blocks: [
         {
           type: "header",
-          text: { type: "plain_text", text: "💬 새 문의 접수" },
+          text: { type: "plain_text", text: "🙋 고객 문의 접수", emoji: true },
+        },
+        {
+          type: "section",
+          text: { type: "mrkdwn", text: `*${userName}*님이 새 문의를 등록했습니다.` },
+        },
+        {
+          type: "divider",
         },
         {
           type: "section",
           fields: [
-            { type: "mrkdwn", text: `*고객사:*\n${clientName}` },
-            { type: "mrkdwn", text: `*담당자:*\n${userName}` },
-            { type: "mrkdwn", text: `*카테고리:*\n${category}` },
-            { type: "mrkdwn", text: `*제목:*\n${title}` },
+            { type: "mrkdwn", text: `*📌 제목:*\n${title}` },
+            { type: "mrkdwn", text: `*🏷️ 카테고리:*\n${category}` },
           ],
         },
         {
           type: "section",
-          text: { type: "mrkdwn", text: `*내용:*\n${content.substring(0, 500)}${content.length > 500 ? "..." : ""}${attachmentText}` },
+          text: { type: "mrkdwn", text: `*📝 내용:*\n${content.substring(0, 500)}${content.length > 500 ? "..." : ""}` },
         },
         ...(attachments.length > 0
-          ? attachments.map((url, i) => ({
-              type: "section" as const,
-              text: { type: "mrkdwn" as const, text: `📎 <${url}|첨부파일 ${i + 1}>` },
-            }))
+          ? [
+              {
+                type: "divider" as const,
+              },
+              {
+                type: "section" as const,
+                text: { type: "mrkdwn" as const, text: `*📎 첨부파일 (${attachments.length}개):*` },
+              },
+              ...attachments.map((url, i) => ({
+                type: "section" as const,
+                text: { type: "mrkdwn" as const, text: `• <${url}|첨부파일 ${i + 1}>` },
+              })),
+            ]
           : []),
         {
           type: "context",
           elements: [
-            { type: "mrkdwn", text: `📅 ${new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}` },
+            { type: "mrkdwn", text: `👤 *고객* | 📅 ${new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}` },
           ],
         },
       ],
     });
 
-    console.log("[Slack] 문의 알림 발송 성공");
+    console.log("[Slack] 문의 알림 발송 성공:", slackChannelId);
   } catch (error) {
     console.error("[Slack] 문의 알림 발송 실패:", error);
   }
@@ -167,6 +179,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 사용자의 슬랙 채널 ID 조회 (자료제출 시 생성된 채널)
+    const submission = await prisma.submission.findUnique({
+      where: { userId: user.userId },
+      select: { slackChannelId: true },
+    });
+
     // 트랜잭션으로 스레드와 첫 메시지 동시 생성
     const thread = await prisma.communicationThread.create({
       data: {
@@ -193,7 +211,15 @@ export async function POST(request: NextRequest) {
 
     // 관리자에게 알림 (텔레그램 + 슬랙)
     sendAdminNotification(user.name, user.clientName, title);
-    sendSlackNotification(user.name, user.clientName, title, category || "일반", content, attachments || []);
+    sendSlackNotification(
+      submission?.slackChannelId || null,
+      user.name,
+      user.clientName,
+      title,
+      category || "일반",
+      content,
+      attachments || []
+    );
 
     return NextResponse.json({
       success: true,
