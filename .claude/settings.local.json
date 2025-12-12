@@ -16,7 +16,8 @@
       "Bash(pnpm add:*)",
       "Bash(vercel env ls:*)",
       "Bash(printf:*)",
-      "Bash(vercel env add:*)"
+      "Bash(vercel env add:*)",
+      "Bash(ls:*)"
     ]
   }
 }

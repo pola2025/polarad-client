@@ -145,7 +145,7 @@ export default function ContractsPage() {
                     </div>
 
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400">
-                      <span>{formatCurrency(contract.monthlyFee)}/월</span>
+                      <span>패키지 {formatCurrency(contract.monthlyFee)}</span>
                       <span>{contract.contractPeriod}개월</span>
                       <span>총 {formatCurrency(contract.totalAmount)}</span>
                     </div>

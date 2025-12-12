@@ -332,7 +332,7 @@ export default function ContractWritePage({
               <p className="font-medium text-gray-900 dark:text-white">{contract.contractPeriod}개월</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">월 이용료</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">패키지 비용</p>
               <p className="font-medium text-gray-900 dark:text-white">{formatCurrency(contract.monthlyFee)}</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
@@ -434,9 +434,7 @@ export default function ContractWritePage({
                 <h4 className="font-bold text-gray-900 dark:text-white mb-2">제7조 환불 규정</h4>
                 <ol className="list-decimal list-inside space-y-1">
                   <li>모든 제작물 제작 전 해지 시: 납입 금액의 <strong>100% 환불</strong></li>
-                  <li>디자인(인쇄물) 제작 완료 후 해지 시: 납입 금액의 <strong>40% 환불</strong></li>
-                  <li>홈페이지 및 디자인 모두 제작 완료 후 해지 시: 납입 금액의 <strong>20% 환불</strong></li>
-                  <li className="ml-4 text-gray-500">※ 인쇄물 제작 완료 후, 홈페이지 제작 중 해지 시 홈페이지 제작은 중단됩니다.</li>
+                  <li>디자인(인쇄물) 제작 완료 후 해지 시: 납입 금액의 <strong>40% 환불</strong> (인쇄물 제작 완료 후, 홈페이지 제작 중 해지 시 홈페이지 제작은 중단됩니다.)</li>
                   <li>모든 제작물 완료 후 해지 시: <strong>환불 불가</strong> (서비스 용역이 모두 제공된 것으로 간주)</li>
                   <li>환불 시 제작된 홈페이지는 즉시 사용이 중단된다.</li>
                   <li>환불 시 광고지원 서비스는 모두 중단된다.</li>
@@ -461,13 +459,10 @@ export default function ContractWritePage({
               <div>
                 <h4 className="font-bold text-gray-900 dark:text-white mb-2">제9조 유지 비용 및 추가 비용</h4>
                 <ol className="list-decimal list-inside space-y-1">
-                  <li>웹사이트 제작 서비스를 이용하는 경우, 계약 기간 종료 후 2년차부터 연간 유지비용이 발생한다.</li>
-                  <li>연간 유지비용: 도메인 및 호스팅 포함 <strong>500,000원/년</strong> (부가세 별도)</li>
-                  <li>호스팅 트래픽이 월 100GB를 초과하는 경우, 초과 트래픽에 대해 별도 비용이 청구될 수 있다.</li>
-                  <li>Meta 광고 연동 서비스(광고 자동화, 알림, 대시보드 등)는 <strong>{contract.isPromotion ? '계약일로부터 2년간' : '계약일로부터 1년간'}</strong> 무료로 제공된다.</li>
-                  {!contract.isPromotion && (
-                    <li>Meta 광고 연동 서비스 무료 기간 종료 후 계속 이용 시 <strong>월 220,000원 (3개월 단위 결제, 부가세 별도)</strong>이 청구된다.</li>
-                  )}
+                  <li>웹사이트 제작 서비스를 이용하는 경우, <strong>{contract.isPromotion ? '계약일로부터 2년간' : '계약일로부터 1년간'}</strong> 도메인 및 호스팅이 무료로 제공된다.</li>
+                  <li>호스팅 트래픽이 월 100GB를 초과하는 경우, 초과 트래픽에 대해 별도 비용이 청구될 수 있다. (계약 기간 중에도 동일하게 적용) 단, 트래픽 기본 사용량 정책은 서비스 제공사(Vercel)의 정책에 따라 변동될 수 있다.</li>
+                  <li>Meta 광고 연동 서비스(광고 자동화, 알림, 대시보드 등)는 <strong>{contract.isPromotion ? '계약일로부터 2년간' : '계약일로부터 1년간'}</strong> 무료로 제공된다. 단, 광고 소재 제작은 포함되지 않는다.</li>
+                  <li>Meta 광고 연동 서비스 무료 기간 종료 후 계속 이용 시 <strong>200,000원/월 (부가세 별도), 3개월 단위 결제</strong>가 필요하다.</li>
                   <li>유지비용 미납 시 서비스가 중단될 수 있으며, 중단 후 30일 경과 시 데이터가 삭제될 수 있다.</li>
                   <li>갑은 계약 종료 전 데이터 백업을 요청할 수 있으며, 을은 합리적인 범위 내에서 협조한다.</li>
                 </ol>
