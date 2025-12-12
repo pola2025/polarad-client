@@ -348,7 +348,9 @@ export default function ContractWritePage({
                 {contract.package.features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    {feature}
+                    {feature.includes('호스팅') && feature.includes('무료')
+                      ? `${feature} *기본 트래픽 내, 9조 3항 참고`
+                      : feature}
                   </li>
                 ))}
               </ul>
